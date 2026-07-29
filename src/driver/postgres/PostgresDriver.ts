@@ -1336,7 +1336,13 @@ export class PostgresDriver implements Driver {
     createFullType(column: TableColumn): string {
         let type = column.type
 
-        if (column.length) {
+        // a length is only rendered for the types that accept one, so a
+        // length carried by a type that takes none (uuid, for instance)
+        // cannot produce an unparsable type such as "uuid(36)"
+        if (
+            column.length &&
+            this.withLengthColumnTypes.indexOf(column.type as ColumnType) !== -1
+        ) {
             type += "(" + column.length + ")"
         } else if (
             column.precision !== null &&
