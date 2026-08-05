@@ -1325,7 +1325,16 @@ export class PostgresDriver implements Driver {
      * @param column
      */
     getColumnLength(column: ColumnMetadata): string {
-        return column.length ? column.length.toString() : ""
+        if (!column.length) return ""
+
+        // a length is only reported for the types that accept one. Reporting it
+        // for a type that takes none would compare the declared length against
+        // the nothing the database reports back for such a column, so the
+        // column would read as changed on every synchronization.
+        const normalizedType = this.normalizeType(column) as ColumnType
+        if (this.withLengthColumnTypes.indexOf(normalizedType) === -1) return ""
+
+        return column.length.toString()
     }
 
     /**
