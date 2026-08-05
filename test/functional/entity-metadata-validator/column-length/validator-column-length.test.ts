@@ -15,6 +15,10 @@ describe("entity-metadata-validator > column length", () => {
             username: "test",
             password: "test",
             database: "test",
+            region: "us-east-1",
+            secretArn:
+                "arn:aws:secretsmanager:us-east-1:123456789012:secret:test",
+            resourceArn: "arn:aws:rds:us-east-1:123456789012:cluster:test",
             entities: [Item],
         }) as DataSourceOptions
 
@@ -31,7 +35,19 @@ describe("entity-metadata-validator > column length", () => {
     // carrying one the driver has no use for is ignored rather than rejected.
     // Rejecting made such a column undefinable for a codebase targeting more
     // than one driver.
-    for (const type of ["postgres", "cockroachdb", "mysql"]) {
+    for (const type of [
+        "postgres",
+        "aurora-postgres",
+        "cockroachdb",
+        "mysql",
+        "mariadb",
+        "aurora-mysql",
+        "oracle",
+        "mssql",
+        "sap",
+        "spanner",
+        "better-sqlite3",
+    ]) {
         it(`should not throw for lengths carried by types that accept none on ${type}`, async () => {
             expect(await validate(type)).not.to.throw()
         })

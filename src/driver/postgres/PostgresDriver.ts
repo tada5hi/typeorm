@@ -1331,7 +1331,9 @@ export class PostgresDriver implements Driver {
         // for a type that takes none would compare the declared length against
         // the nothing the database reports back for such a column, so the
         // column would read as changed on every synchronization.
-        const normalizedType = this.normalizeType(column) as ColumnType
+        const normalizedType = this.normalizeType(
+            column,
+        ).toLowerCase() as ColumnType
         if (this.withLengthColumnTypes.indexOf(normalizedType) === -1) return ""
 
         return column.length.toString()
@@ -1344,13 +1346,14 @@ export class PostgresDriver implements Driver {
      */
     createFullType(column: TableColumn): string {
         let type = column.type
+        const normalizedType = column.type.toLowerCase() as ColumnType
 
         // a length is only rendered for the types that accept one, so a
         // length carried by a type that takes none (uuid, for instance)
         // cannot produce an unparsable type such as "uuid(36)"
         if (
             column.length &&
-            this.withLengthColumnTypes.indexOf(column.type as ColumnType) !== -1
+            this.withLengthColumnTypes.indexOf(normalizedType) !== -1
         ) {
             type += "(" + column.length + ")"
         } else if (
@@ -1501,7 +1504,7 @@ export class PostgresDriver implements Driver {
             const isColumnChanged =
                 tableColumn.name !== columnMetadata.databaseName ||
                 tableColumn.type !== this.normalizeType(columnMetadata) ||
-                tableColumn.length !== columnMetadata.length ||
+                tableColumn.length !== this.getColumnLength(columnMetadata) ||
                 tableColumn.isArray !== columnMetadata.isArray ||
                 tableColumn.precision !== columnMetadata.precision ||
                 (columnMetadata.scale !== undefined &&
